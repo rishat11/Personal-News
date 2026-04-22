@@ -74,11 +74,10 @@ async def main() -> None:
     # Run one ingest immediately so users don't wait for the first scheduler tick.
     await run_ingest_cycle(session_factory)
 
-    from src.bot.handlers import callbacks_router, commands_router, free_text_router
+    from src.bot.handlers import callbacks_router, commands_router
 
     dp.include_router(commands_router)
     dp.include_router(callbacks_router)
-    dp.include_router(free_text_router)
 
     scheduler = create_scheduler()
     scheduler.add_job(run_ingest_cycle, "interval", minutes=20, args=[session_factory], id="ingest_cycle")
