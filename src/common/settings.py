@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from os import getenv
+from pathlib import Path
 
 
 @dataclass(frozen=True)
@@ -16,8 +17,21 @@ def load_settings() -> Settings:
     # Optional dotenv support for local runs; production can use real env vars.
     try:
         from dotenv import load_dotenv  # type: ignore
+        # Prefer an explicit .env path so this works even when CWD isn't the repo root.
+        # We search upward from this file (src/common/settings.py) to find a repo-level .env.
+        here = Path(__file__).resolve()
+        env_path: Path | None = None
+        for parent in [here.parent, *here.parents]:
+            candidate = parent / ".env"
+            if candidate.exists():
+                env_path = candidate
+                break
 
-        load_dotenv()
+        if env_path is not None:
+            load_dotenv(dotenv_path=env_path, override=False)
+        else:
+            # Fall back to default behavior (current working directory).
+            load_dotenv(override=False)
     except Exception:
         pass
 

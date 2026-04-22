@@ -2,6 +2,8 @@ from __future__ import annotations
 
 import asyncio
 import logging
+import os
+import sys
 
 from aiogram import Bot, Dispatcher
 from aiogram.client.session.aiohttp import AiohttpSession
@@ -30,6 +32,21 @@ async def main() -> None:
     if not settings.bot_token:
         raise RuntimeError("BOT_TOKEN is missing. Create .env (see .env.example).")
     if not settings.database_url:
+        # Help diagnose env injection issues in hosted environments (e.g. containers).
+        # Safe: do not print BOT_TOKEN. DATABASE_URL is printed only as presence + length.
+        raw_db = os.getenv("DATABASE_URL")
+        present_keys = sorted(
+            k for k in os.environ.keys()
+            if k in {"DATABASE_URL", "BOT_TOKEN", "LOG_LEVEL", "PROXY_URL"} or k.upper().endswith("_URL")
+        )
+        print(
+            "DATABASE_URL is missing at runtime. "
+            f"cwd={os.getcwd()!r} "
+            f"has_DATABASE_URL={'DATABASE_URL' in os.environ} "
+            f"database_url_len={(len(raw_db) if raw_db else 0)} "
+            f"related_env_keys={present_keys!r}",
+            file=sys.stderr,
+        )
         raise RuntimeError("DATABASE_URL is missing. Create .env (see .env.example).")
 
     engine = create_engine(settings.database_url)
