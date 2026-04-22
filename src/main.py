@@ -71,6 +71,9 @@ async def main() -> None:
     async with session_scope(session_factory) as session:
         await ensure_sources(session)
 
+    # Run one ingest immediately so users don't wait for the first scheduler tick.
+    await run_ingest_cycle(session_factory)
+
     from src.bot.handlers import callbacks_router, commands_router
 
     dp.include_router(commands_router)
