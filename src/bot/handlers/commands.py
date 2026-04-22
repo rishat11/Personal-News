@@ -29,7 +29,7 @@ async def cmd_start(message: Message) -> None:
         return
     await message.answer(
         "Привет! Я собираю персональную ленту новостей и дневной дайджест.\n"
-        "Начнём с выбора интересов или просто открой /feed.",
+        "Выбери интересы кнопками или напиши свои словами (можно несколько через запятую), затем открой /feed.",
         reply_markup=quick_interests_kb(QUICK_INTERESTS),
     )
 
