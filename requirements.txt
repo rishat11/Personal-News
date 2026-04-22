@@ -1,0 +1,12 @@
+aiogram
+httpx
+aiohttp-socks
+feedparser
+beautifulsoup4
+readability-lxml
+sqlalchemy[asyncio]
+aiosqlite
+apscheduler
+pydantic
+python-dotenv
+rapidfuzz
