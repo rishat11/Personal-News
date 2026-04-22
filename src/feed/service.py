@@ -6,7 +6,7 @@ from typing import Optional
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from src.storage.schema import Article, Event, EventArticle, FeedEntry
+from src.storage.schema import Article, Event, EventArticle, FeedEntry, Source
 
 
 @dataclass(frozen=True)
@@ -21,7 +21,7 @@ class FeedItem:
 
 async def list_feed(session: AsyncSession, *, user_id: int, limit: int = 10) -> list[FeedItem]:
     rows = await session.execute(
-        select(FeedEntry).where(FeedEntry.user_id == user_id).order_by(FeedEntry.score.desc()).limit(limit)
+        select(FeedEntry).where(FeedEntry.user_id == user_id).order_by(FeedEntry.score.desc()).limit(200)
     )
     entries = list(rows.scalars().all())
     if not entries:
@@ -29,6 +29,8 @@ async def list_feed(session: AsyncSession, *, user_id: int, limit: int = 10) -> 
 
     out: list[FeedItem] = []
     for e in entries:
+        if len(out) >= limit:
+            break
         item = await _load_event_primary(session, e.event_id)
         if item is None:
             continue
@@ -51,7 +53,8 @@ async def _load_event_primary(session: AsyncSession, event_id: int) -> tuple[str
         select(Event.title, Article.url_canonical, Article.source_id)
         .join(EventArticle, EventArticle.event_id == Event.id)
         .join(Article, Article.id == EventArticle.article_id)
-        .where(Event.id == event_id)
+        .join(Source, Source.id == Article.source_id)
+        .where(Event.id == event_id, Source.enabled_by_default.is_(True))
         .order_by(EventArticle.is_primary.desc(), Article.published_at.desc().nullslast(), Article.id.desc())
         .limit(1)
     )

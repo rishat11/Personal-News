@@ -9,7 +9,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.digest.rank import DigestConfig, rank_events_for_user
 from src.digest.summarize import extractive_summary
-from src.storage.schema import Article, Digest, DigestItem, Event, EventArticle
+from src.storage.schema import Article, Digest, DigestItem, Event, EventArticle, Source
 
 
 @dataclass(frozen=True)
@@ -92,7 +92,8 @@ async def _load_event_primary(
         select(Event.title, Article.url_canonical, Article.content_text, Article.summary)
         .join(EventArticle, EventArticle.event_id == Event.id)
         .join(Article, Article.id == EventArticle.article_id)
-        .where(Event.id == event_id)
+        .join(Source, Source.id == Article.source_id)
+        .where(Event.id == event_id, Source.enabled_by_default.is_(True))
         .order_by(EventArticle.is_primary.desc(), Article.published_at.desc().nullslast(), Article.id.desc())
         .limit(1)
     )

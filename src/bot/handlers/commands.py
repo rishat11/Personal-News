@@ -20,7 +20,7 @@ logger = logging.getLogger(__name__)
 
 router = Router()
 
-QUICK_INTERESTS = ["технологии", "бизнес", "спорт", "наука"]
+QUICK_INTERESTS = ["технологии", "экономика", "политика", "спорт", "наука"]
 
 
 @router.message(Command("start"))
@@ -29,7 +29,7 @@ async def cmd_start(message: Message) -> None:
         return
     await message.answer(
         "Привет! Я собираю персональную ленту новостей и дневной дайджест.\n"
-        "Начнём с выбора интересов. Затем открой /feed.",
+        "Источники — русскоязычные СМИ. Начнём с выбора интересов, затем открой /feed.",
         reply_markup=quick_interests_kb(QUICK_INTERESTS),
     )
 
